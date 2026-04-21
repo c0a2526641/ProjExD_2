@@ -43,17 +43,21 @@ def main():
     bb_rct = bb_img.get_rect() #爆弾Rectを取得する
     bb_rct.center = random.randint(0, WIDTH), random.randint(0, HEIGHT) #爆弾の初期座標を設定する
     vx, vy = +5, +5
+
     clock = pg.time.Clock()
     tmr = 0
-
-    
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT: 
                 return
+            
+        if kk_rct.colliderect(bb_rct): #こうかとんと爆弾の衝突判定
+            return #ゲームオーバーの意味でmain関数から出る
         screen.blit(bg_img, [0, 0]) 
+
         key_lst = pg.key.get_pressed()
         sum_mv = [0, 0]
+
         for key, mv in DELTA.items():
             if key_lst[key]:
                 sum_mv[0] += mv[0]
@@ -63,15 +67,15 @@ def main():
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
 
         screen.blit(kk_img, kk_rct)
-        bb_rct.move_ip(vx , vy)
+        bb_rct.move_ip(vx , vy) #爆弾を移動させる
         yoko, tate = check_bound(bb_rct)
-        if not yoko:
+        if not yoko: #横方向の判定
             vx *= -1
-        if not tate:
+        if not tate: #縦方向の判定
             vy *= -1
         
-        screen.blit(bb_img, bb_rct)
-        screen.blit(bb_img, bb_rct)
+        screen.blit(bb_img, bb_rct) #爆弾を表示させる
+        
         pg.display.update()
         tmr += 1
         clock.tick(50)
