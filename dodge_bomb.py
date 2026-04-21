@@ -33,13 +33,14 @@ def gameover(screen: pg.Surface) -> None:
     """
     演習1: ゲームオーバー画面を表示 
     """
-    black_out = pg.Surface((WIDTH, HEIGHT)) #ブラックアウト
+    #ブラックアウト
+    black_out = pg.Surface((WIDTH, HEIGHT))
     pg.draw.rect(black_out, (0, 0, 0), (0, 0, WIDTH, HEIGHT))
     black_out.set_alpha(150)# 透明度 
-    
+    #Game Overの文字列
     font = pg.font.Font(None, 80)
     txt = font.render("Game Over", True, (255, 255, 255))
-    
+    #泣いてるこうかとん画像
     kk_img1 = pg.transform.rotozoom(pg.image.load("fig/8.png"), 0, 1.5)
     kk_img2 = pg.transform.rotozoom(pg.image.load("fig/8.png"), 0, 1.5)
 
@@ -48,7 +49,29 @@ def gameover(screen: pg.Surface) -> None:
     screen.blit(kk_img1, [300, 260])
     screen.blit(kk_img2, [740, 260])
     pg.display.update()
-    time.sleep(5)
+    time.sleep(5) #5秒表示
+
+
+def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
+    """
+    演習3：移動方向に応じたこうかとん画像の辞書を返す 
+    """
+    base_img = pg.image.load("fig/3.png")
+    flip_img = pg.transform.flip(base_img, True, False)
+    
+    kk_dict = {
+        (0, 0): pg.transform.rotozoom(base_img, 0, 0.9),      #静止
+        (0, -5): pg.transform.rotozoom(flip_img, 90, 0.9),    #上
+        (5, -5): pg.transform.rotozoom(flip_img, 45, 0.9),    #右上
+        (5, 0): pg.transform.rotozoom(flip_img, 0, 0.9),      #右
+        (5, 5): pg.transform.rotozoom(flip_img, -45, 0.9),    #右下
+        (0, 5): pg.transform.rotozoom(flip_img, -90, 0.9),    #下
+        (-5, 5): pg.transform.rotozoom(base_img, 45, 0.9),    #左下
+        (-5, 0): pg.transform.rotozoom(base_img, 0, 0.9),     #左
+        (-5, -5): pg.transform.rotozoom(base_img, -45, 0.9),  #左上
+    }
+    return kk_dict
+
 
 
 def main():
@@ -68,6 +91,8 @@ def main():
 
     clock = pg.time.Clock()
     tmr = 0
+    kk_imgs = get_kk_imgs()
+
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT: 
@@ -89,6 +114,7 @@ def main():
         if check_bound(kk_rct) != (True, True): 
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
 
+        kk_img = kk_imgs[tuple(sum_mv)]
         screen.blit(kk_img, kk_rct)
         bb_rct.move_ip(vx , vy) #爆弾を移動させる
         yoko, tate = check_bound(bb_rct)
