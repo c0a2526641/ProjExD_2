@@ -51,6 +51,15 @@ def gameover(screen: pg.Surface) -> None:
     pg.display.update()
     time.sleep(5) #5秒表示
 
+def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
+    bb_imgs = []
+    for r in range(1, 11):
+        bb_img = pg.Surface((20*r, 20*r))
+        pg.draw.circle(bb_img, (255, 0, 0), (10*r, 10*r), 10*r)
+        bb_img.set_colorkey((0, 0, 0))
+        bb_imgs.append(bb_img)    
+        bb_accs = [a for a in range(1, 11)] 
+    return bb_imgs, bb_accs
 
 def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
     """
@@ -73,7 +82,6 @@ def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
     return kk_dict
 
 
-
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -88,6 +96,8 @@ def main():
     bb_rct = bb_img.get_rect() #爆弾Rectを取得する
     bb_rct.center = random.randint(0, WIDTH), random.randint(0, HEIGHT) #爆弾の初期座標を設定する
     vx, vy = +5, +5
+    bb_imgs, bb_accs = init_bb_imgs()
+    bb_img = bb_imgs[0]
 
     clock = pg.time.Clock()
     tmr = 0
@@ -98,14 +108,14 @@ def main():
             if event.type == pg.QUIT: 
                 return
             
-        if kk_rct.colliderect(bb_rct): #こうかとんと爆弾の衝突判定
-            gameover(screen) #ゲームオーバーの画面表示  
-            return #ゲームオーバーの意味でmain関数から出る
+        if kk_rct.colliderect(bb_rct): 
+            gameover(screen) 
+            return 
+        
         screen.blit(bg_img, [0, 0]) 
 
         key_lst = pg.key.get_pressed()
         sum_mv = [0, 0]
-
         for key, mv in DELTA.items():
             if key_lst[key]:
                 sum_mv[0] += mv[0]
@@ -113,17 +123,27 @@ def main():
         kk_rct.move_ip(sum_mv)
         if check_bound(kk_rct) != (True, True): 
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
+        
+        idx = min(tmr // 500, 9)  
+        avx = vx * bb_accs[idx]    
+        avy = vy * bb_accs[idx]    
+        bb_img = bb_imgs[idx]     
+        
+        bb_rct.width = bb_img.get_rect().width
+        bb_rct.height = bb_img.get_rect().height
 
         kk_img = kk_imgs[tuple(sum_mv)]
         screen.blit(kk_img, kk_rct)
-        bb_rct.move_ip(vx , vy) #爆弾を移動させる
+
+        bb_rct.move_ip(avx, avy) 
+        
         yoko, tate = check_bound(bb_rct)
-        if not yoko: #横方向の判定
+        if not yoko:
             vx *= -1
-        if not tate: #縦方向の判定
+        if not tate:
             vy *= -1
         
-        screen.blit(bb_img, bb_rct) #爆弾を表示させる
+        screen.blit(bb_img, bb_rct) 
         
         pg.display.update()
         tmr += 1
